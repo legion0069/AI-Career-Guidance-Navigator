@@ -72,6 +72,31 @@ Visit **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your web browser.
 
 ---
 
+## ☁️ Deploy to Vercel
+
+The application is pre-configured for **1-click Vercel deployment** using Serverless Functions and `vercel.json`.
+
+### Option A: Via GitHub & Vercel Dashboard (Recommended)
+1. Go to [Vercel Dashboard](https://vercel.com/new).
+2. Click **"Import Project"** and select `legion0069/AI-Career-Guidance-Navigator`.
+3. In **Environment Variables** (optional):
+   - Add `GEMINI_API_KEY` (if you wish to use live Gemini AI inference).
+4. Click **Deploy**. Vercel will build and assign you a live production URL (e.g., `https://ai-career-guidance-navigator.vercel.app`).
+
+### Option B: Via Vercel CLI
+```bash
+# Log in to your Vercel account
+vercel login
+
+# Deploy to preview
+vercel
+
+# Deploy directly to production
+vercel --prod
+```
+
+---
+
 ## ⚙️ Configuration (Optional)
 
 The application works completely out-of-the-box using the built-in offline intelligence engine.
@@ -127,3 +152,4 @@ AI-Career-Guidance-Navigator/
 ## 🛡️ License
 
 This project is licensed under the MIT License - feel free to use, modify, and distribute.
+

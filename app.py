@@ -1,10 +1,15 @@
 import os
+import sys
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 from career_data import (
     CAREER_DATABASE,
@@ -28,6 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # Request Models
 class AssessmentRequest(BaseModel):
@@ -52,12 +58,18 @@ class ChatMessage(BaseModel):
 
 
 # Static Files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def serve_index():
-    return FileResponse("static/index.html")
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>AI Career Guidance Navigator</h1><p>Index file not found.</p>")
+
 
 
 @app.get("/api/skills")
@@ -258,3 +270,4 @@ Here are key expert insights to guide your next decision:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+

@@ -14,3 +14,4 @@ if errorlevel 1 (
 echo Starting FastAPI server at http://127.0.0.1:8000 ...
 python app.py
 pause
+

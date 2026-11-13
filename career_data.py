@@ -874,3 +874,4 @@ def analyze_resume_text(resume_text: str, target_career_id: str) -> Dict[str, An
         "strong_action_verbs_found": [v.title() for v in found_verbs],
         "actionable_recommendations": recommendations
     }
+
