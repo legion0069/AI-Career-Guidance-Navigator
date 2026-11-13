@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Career Guidance Navigator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2224%22 font-size=%2224%22>🧭</text></svg>">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Marked.js for markdown in chat -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Brand Logo -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('assess')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <i class="fa-solid fa-compass text-white text-xl animate-spin-slow"></i>
+          </div>
+          <div>
+            <span class="text-xl font-extrabold tracking-tight text-white">Career<span class="text-gradient-purple">Navigator</span></span>
+            <span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">AI Edition</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="hidden md:flex space-x-1 bg-slate-950/60 p-1.5 rounded-xl border border-slate-800/80">
+          <button id="tab-btn-assess" onclick="switchTab('assess')" class="nav-tab-active px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center space-x-2">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Assessment</span>
+          </button>
+          <button id="tab-btn-roadmap" onclick="switchTab('roadmap')" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all flex items-center space-x-2">
+            <i class="fa-solid fa-route"></i>
+            <span>Roadmap</span>
+          </button>
+          <button id="tab-btn-resume" onclick="switchTab('resume')" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all flex items-center space-x-2">
+            <i class="fa-solid fa-file-invoice"></i>
+            <span>Resume Review</span>
+          </button>
+          <button id="tab-btn-chat" onclick="switchTab('chat')" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all flex items-center space-x-2">
+            <i class="fa-solid fa-comments"></i>
+            <span>AI Advisor</span>
+          </button>
+          <button id="tab-btn-explore" onclick="switchTab('explore')" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all flex items-center space-x-2">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Explore Roles</span>
+          </button>
+        </nav>
+
+        <!-- Right action: API Settings & Info -->
+        <div class="flex items-center space-x-3">
+          <button onclick="openApiKeyModal()" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-key text-amber-400"></i>
+            <span id="api-key-status">API Key: Auto</span>
+          </button>
+          <a href="https://github.com/legion0069/AI-Career-Guidance-Navigator" target="_blank" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-slate-700 transition">
+            <i class="fa-brands fa-github text-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Bar -->
+  <div class="md:hidden flex overflow-x-auto bg-slate-900 border-b border-slate-800 px-2 py-2 space-x-1 text-xs">
+    <button onclick="switchTab('assess')" class="px-3 py-1.5 whitespace-nowrap rounded-lg bg-indigo-600 text-white font-medium">Assessment</button>
+    <button onclick="switchTab('roadmap')" class="px-3 py-1.5 whitespace-nowrap rounded-lg text-slate-300 bg-slate-800">Roadmap</button>
+    <button onclick="switchTab('resume')" class="px-3 py-1.5 whitespace-nowrap rounded-lg text-slate-300 bg-slate-800">Resume Review</button>
+    <button onclick="switchTab('chat')" class="px-3 py-1.5 whitespace-nowrap rounded-lg text-slate-300 bg-slate-800">AI Advisor</button>
+    <button onclick="switchTab('explore')" class="px-3 py-1.5 whitespace-nowrap rounded-lg text-slate-300 bg-slate-800">Explore</button>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: ASSESSMENT & CAREER DISCOVERY -->
+    <!-- ========================================== -->
+    <section id="tab-assess" class="space-y-8">
+      <!-- Hero Banner -->
+      <div class="relative rounded-2xl bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900/60 p-8 border border-indigo-500/20 overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-3xl space-y-3">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold border border-indigo-500/30">
+            <i class="fa-solid fa-sparkles"></i>
+            <span>Intelligent Career Discovery Engine</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Discover Your Next High-Impact Career in Tech & AI
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            Input your current skills, background, and work preferences. Our guidance engine maps your capabilities against real industry benchmarks, calculates compatibility match scores, and reveals tailored learning paths.
+          </p>
+        </div>
+      </div>
+
+      <!-- Assessment Form & Results Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left: Input Form (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="glass-card rounded-2xl p-6 space-y-5">
+            <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-sliders text-indigo-400"></i>
+              <span>Your Profile & Experience</span>
+            </h2>
+
+            <!-- Education -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Education Background</label>
+              <select id="user-education" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="Computer Science / IT">Computer Science / IT Degree</option>
+                <option value="Engineering (Non-CS)">Engineering (Mechanical, Electrical, etc.)</option>
+                <option value="Data Science / Statistics">Mathematics / Statistics / Data Science</option>
+                <option value="Business / Management">Business / Finance / Management</option>
+                <option value="Design / Arts">Design / Fine Arts / Media</option>
+                <option value="Self-Taught / Bootcamp">Self-Taught / Coding Bootcamp Graduate</option>
+                <option value="Other">Other / Career Transitioner</option>
+              </select>
+            </div>
+
+            <!-- Experience Level -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Current Career Stage</label>
+              <select id="user-experience" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="Student / Fresh Graduate">Student / Fresh Graduate</option>
+                <option value="Early Professional (1-2 yrs)">Early Professional (1 - 2 yrs)</option>
+                <option value="Mid-Career Transitioner (3-5 yrs)">Mid-Career Transitioner (3 - 5 yrs)</option>
+                <option value="Senior Looking to Specialize (5+ yrs)">Senior Professional Looking to Specialize (5+ yrs)</option>
+              </select>
+            </div>
+
+            <!-- Target Category Filter -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Target Domain</label>
+              <select id="user-category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="All">All Domains (Best Match Across All)</option>
+                <option value="Artificial Intelligence & Data">Artificial Intelligence & Data</option>
+                <option value="Software Engineering">Software Engineering & Web</option>
+                <option value="Cloud & Infrastructure">Cloud, Infrastructure & DevOps</option>
+                <option value="Security & Defense">Cybersecurity & Threat Defense</option>
+                <option value="Product & Strategy">Product Management & Strategy</option>
+                <option value="Design & User Experience">UI/UX & Product Design</option>
+              </select>
+            </div>
+
+            <!-- Skills Tag Selector -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Select Skills You Have</label>
+                <span id="skills-count-badge" class="text-xs text-indigo-400 font-semibold">0 selected</span>
+              </div>
+              <div id="skills-selector-container" class="max-h-48 overflow-y-auto p-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl flex flex-wrap gap-1.5">
+                <!-- Skill Pills will be populated here -->
+              </div>
+            </div>
+
+            <!-- Preferred Work Style / Strengths -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Work Style & Strengths</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center space-x-2 p-2 bg-slate-900/80 border border-slate-800 rounded-lg cursor-pointer hover:border-indigo-500/50">
+                  <input type="checkbox" name="work_style" value="Analytical" class="rounded text-indigo-600 focus:ring-0" checked>
+                  <span>Analytical Thinking</span>
+                </label>
+                <label class="flex items-center space-x-2 p-2 bg-slate-900/80 border border-slate-800 rounded-lg cursor-pointer hover:border-indigo-500/50">
+                  <input type="checkbox" name="work_style" value="Creative" class="rounded text-indigo-600 focus:ring-0" checked>
+                  <span>Creative & Design</span>
+                </label>
+                <label class="flex items-center space-x-2 p-2 bg-slate-900/80 border border-slate-800 rounded-lg cursor-pointer hover:border-indigo-500/50">
+                  <input type="checkbox" name="work_style" value="Leadership" class="rounded text-indigo-600 focus:ring-0">
+                  <span>Leadership & Strategy</span>
+                </label>
+                <label class="flex items-center space-x-2 p-2 bg-slate-900/80 border border-slate-800 rounded-lg cursor-pointer hover:border-indigo-500/50">
+                  <input type="checkbox" name="work_style" value="Autonomous" class="rounded text-indigo-600 focus:ring-0" checked>
+                  <span>Autonomous Coding</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button onclick="submitAssessment()" class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition transform active:scale-98">
+              <i class="fa-solid fa-magnifying-glass-chart"></i>
+              <span>Calculate Career Match Scores</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Results & Matching Cards (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-ranking-star text-amber-400"></i>
+              <span>Recommended Pathways</span>
+            </h2>
+            <span id="results-count-label" class="text-xs text-slate-400">Showing top career matches</span>
+          </div>
+
+          <!-- Radar Chart Visualizer (Card) -->
+          <div class="glass-card rounded-2xl p-5 border border-slate-800">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Career Match Compatibility Visualizer</h3>
+            <div class="h-60 flex items-center justify-center">
+              <canvas id="matchChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Ranked Career Cards List -->
+          <div id="assessment-results-list" class="space-y-4">
+            <!-- Results dynamically inserted here -->
+            <div class="text-center py-12 bg-slate-900/40 rounded-2xl border border-slate-800 border-dashed">
+              <i class="fa-solid fa-wand-magic-sparkles text-4xl text-slate-600 mb-3"></i>
+              <p class="text-slate-400 text-sm">Select your skills and click "Calculate Career Match Scores" to view personalized recommendations.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: DETAILED LEARNING ROADMAP -->
+    <!-- ========================================== -->
+    <section id="tab-roadmap" class="hidden space-y-8">
+      <!-- Roadmap Header & Selector -->
+      <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Step-by-step pathway</span>
+          <h2 id="roadmap-title" class="text-2xl font-bold text-white mt-1">AI & Machine Learning Engineer Roadmap</h2>
+          <p id="roadmap-desc" class="text-sm text-slate-300 mt-1 max-w-2xl">Structured 4-phase learning milestones with free resources, projects, and interview prep.</p>
+        </div>
+        <div class="w-full md:w-72">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Switch Career Pathway</label>
+          <select id="roadmap-career-select" onchange="loadRoadmapForCareer(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Bar -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card rounded-xl p-4 border border-slate-800">
+          <div class="text-xs font-medium text-slate-400">Average Salary (US/Global)</div>
+          <div id="roadmap-salary-usd" class="text-lg font-bold text-emerald-400 mt-1">$125,000 - $185,000</div>
+        </div>
+        <div class="glass-card rounded-xl p-4 border border-slate-800">
+          <div class="text-xs font-medium text-slate-400">Average Salary (India)</div>
+          <div id="roadmap-salary-inr" class="text-lg font-bold text-emerald-400 mt-1">₹14 - ₹35 LPA</div>
+        </div>
+        <div class="glass-card rounded-xl p-4 border border-slate-800">
+          <div class="text-xs font-medium text-slate-400">Industry Growth Outlook</div>
+          <div id="roadmap-growth" class="text-lg font-bold text-indigo-400 mt-1">Extremely High (38%)</div>
+        </div>
+        <div class="glass-card rounded-xl p-4 border border-slate-800">
+          <div class="text-xs font-medium text-slate-400">Estimated Mastery Timeline</div>
+          <div class="text-lg font-bold text-purple-400 mt-1">6 - 8 Months</div>
+        </div>
+      </div>
+
+      <!-- Roadmap Timeline Container -->
+      <div id="roadmap-phases-container" class="space-y-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: RESUME ANALYZER & ATS SCORE -->
+    <!-- ========================================== -->
+    <section id="tab-resume" class="hidden space-y-8">
+      <div class="max-w-3xl">
+        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">ATS & Competency Alignment</span>
+        <h2 class="text-2xl font-bold text-white mt-1">AI Resume & Profile Analyzer</h2>
+        <p class="text-slate-300 text-sm mt-1">
+          Paste your resume summary or bullet points below. We analyze keyword density, ATS readability, and missing industry skills for your target role.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Left: Input area (6 cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Target Job Role</label>
+              <select id="resume-target-role" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Paste Resume Content</label>
+                <button onclick="loadSampleResume()" class="text-xs text-indigo-400 hover:text-indigo-300">Load Sample Resume</button>
+              </div>
+              <textarea id="resume-text-input" rows="12" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 placeholder-slate-500" placeholder="Paste your resume work experience, skills summary, or project descriptions here..."></textarea>
+            </div>
+
+            <button onclick="analyzeResume()" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Evaluate Resume Fit</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Results & Recommendations (6 cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div id="resume-results-container" class="glass-card rounded-2xl p-6 space-y-6">
+            <div class="text-center py-12 text-slate-500">
+              <i class="fa-solid fa-file-lines text-4xl mb-3"></i>
+              <p class="text-sm text-slate-400">Click "Evaluate Resume Fit" to generate ATS match score and keyword gap analysis.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: INTERACTIVE AI CAREER ADVISOR CHAT -->
+    <!-- ========================================== -->
+    <section id="tab-chat" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Conversational Intelligence</span>
+          <h2 class="text-2xl font-bold text-white mt-1">AI Career Advisor & Mentor</h2>
+          <p class="text-slate-300 text-sm mt-0.5">Ask questions about career switching, portfolio projects, interview strategies, and salary negotiations.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span>
+            Advisor Online
+          </span>
+        </div>
+      </div>
+
+      <!-- Chat Container -->
+      <div class="glass-card rounded-2xl border border-slate-800 flex flex-col h-[600px] overflow-hidden">
+        
+        <!-- Target context bar -->
+        <div class="bg-slate-900/90 px-6 py-3 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-bullseye text-indigo-400"></i>
+            <span>Current Role Focus:</span>
+            <select id="chat-career-focus" class="bg-slate-800 text-slate-200 rounded px-2 py-1 text-xs border border-slate-700 focus:outline-none">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <button onclick="clearChat()" class="text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-trash-can mr-1"></i> Clear Chat
+          </button>
+        </div>
+
+        <!-- Chat messages scroll area -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+          <!-- Initial Welcome Message -->
+          <div class="flex items-start space-x-3 max-w-2xl">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md">
+              <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-sm text-sm text-slate-200 space-y-2">
+              <p class="font-semibold text-white">Hello! I'm your AI Career Guidance Advisor. 🧭</p>
+              <p>I can help you navigate tech careers, assess skill gaps, suggest high-value portfolio projects, or prepare for technical and behavioral interviews.</p>
+              <p class="text-xs text-slate-400">Try clicking one of the suggested prompts below or ask your own question!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Prompts Pill Bar -->
+        <div class="px-6 py-2 bg-slate-950/70 border-t border-slate-800/80 flex overflow-x-auto space-x-2 text-xs">
+          <button onclick="sendQuickPrompt('How do I build a competitive portfolio for this role?')" class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap transition">
+            🎨 Portfolio Ideas
+          </button>
+          <button onclick="sendQuickPrompt('What are the highest-probability interview questions for this career?')" class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap transition">
+            🎯 Interview Prep
+          </button>
+          <button onclick="sendQuickPrompt('What salary range can I realistically negotiate and what are the levers?')" class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap transition">
+            💰 Salary Insights
+          </button>
+          <button onclick="sendQuickPrompt('I have no prior experience in this field. How do I transition efficiently?')" class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap transition">
+            🚀 Transition Strategy
+          </button>
+        </div>
+
+        <!-- Input Box -->
+        <div class="p-4 bg-slate-900/90 border-t border-slate-800">
+          <form onsubmit="handleChatSubmit(event)" class="flex items-center space-x-3">
+            <input type="text" id="chat-input" placeholder="Ask anything about career transition, skills to learn, interview tips..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+            <button type="submit" id="chat-send-btn" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold flex items-center space-x-2 transition shadow-lg shadow-indigo-600/30">
+              <span>Send</span>
+              <i class="fa-solid fa-paper-plane text-xs"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: EXPLORE ALL CAREERS DIRECTORY -->
+    <!-- ========================================== -->
+    <section id="tab-explore" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Career Catalog</span>
+          <h2 class="text-2xl font-bold text-white mt-1">High-Demand Technology Careers</h2>
+          <p class="text-slate-300 text-sm mt-1">Explore compensation, market growth, and top requirements across specialized technical professions.</p>
+        </div>
+        <div>
+          <input type="text" id="explore-search-input" onkeyup="filterExploreCards()" placeholder="Search careers or skills..." class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-64">
+        </div>
+      </div>
+
+      <!-- Career Cards Grid -->
+      <div id="explore-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900/50 border-t border-slate-800 mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-compass text-indigo-400"></i>
+        <span class="font-semibold text-slate-300">AI Career Guidance Navigator</span>
+        <span>• Open Source Career Intelligence</span>
+      </div>
+      <div class="flex items-center space-x-6">
+        <a href="https://github.com/legion0069/AI-Career-Guidance-Navigator" target="_blank" class="hover:text-white transition">GitHub Repository</a>
+        <span>Built with FastAPI & Modern AI</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- API Key Settings Modal -->
+  <div id="api-key-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-md w-full p-6 space-y-5 border border-slate-700">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <span>Gemini API Key Settings</span>
+        </h3>
+        <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        The application operates smoothly with the <strong>built-in Offline AI Career Guidance Engine</strong>.
+        To unlock real-time live LLM inference with Gemini 2.5 Flash, enter your Google AI Studio API key below.
+      </p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Gemini API Key</label>
+        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button onclick="clearApiKey()" class="px-4 py-2 text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white rounded-lg">Reset to Offline Engine</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-md">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
