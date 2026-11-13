@@ -34,6 +34,13 @@ app.add_middleware(
 )
 
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+PUBLIC_DIR = os.path.join(BASE_DIR, "public")
+
+# Mount static files if directory exists
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+elif os.path.exists(os.path.join(PUBLIC_DIR, "static")):
+    app.mount("/static", StaticFiles(directory=os.path.join(PUBLIC_DIR, "static")), name="static")
 
 # Request Models
 class AssessmentRequest(BaseModel):
@@ -57,21 +64,30 @@ class ChatMessage(BaseModel):
     api_key: Optional[str] = None
 
 
-# Static Files
-if os.path.exists(STATIC_DIR):
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+def get_index_html():
+    # Check public/index.html then static/index.html
+    candidates = [
+        os.path.join(PUBLIC_DIR, "index.html"),
+        os.path.join(STATIC_DIR, "index.html"),
+        os.path.join(BASE_DIR, "index.html")
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            with open(c, "r", encoding="utf-8") as f:
+                return f.read()
+    return "<h1>AI Career Guidance Navigator</h1><p>Index file not found.</p>"
 
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/api", response_class=HTMLResponse)
+@app.get("/api/", response_class=HTMLResponse)
+@app.get("/api/index", response_class=HTMLResponse)
+@app.get("/api/index.py", response_class=HTMLResponse)
 def serve_index():
-    index_path = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>AI Career Guidance Navigator</h1><p>Index file not found.</p>")
+    return HTMLResponse(content=get_index_html())
 
 
-
+@app.get("/skills")
 @app.get("/api/skills")
 def get_skills():
     categories = {
@@ -94,6 +110,7 @@ def get_skills():
     }
 
 
+@app.get("/careers")
 @app.get("/api/careers")
 def get_careers():
     summary_list = []
@@ -112,6 +129,7 @@ def get_careers():
     return {"careers": summary_list}
 
 
+@app.get("/careers/{career_id}")
 @app.get("/api/careers/{career_id}")
 def get_career_detail(career_id: str):
     career = CAREER_DATABASE.get(career_id)
@@ -120,6 +138,7 @@ def get_career_detail(career_id: str):
     return career
 
 
+@app.post("/assess")
 @app.post("/api/assess")
 def run_assessment(payload: AssessmentRequest):
     recommendations = match_user_to_careers(
@@ -137,6 +156,7 @@ def run_assessment(payload: AssessmentRequest):
     }
 
 
+@app.post("/resume-analyzer")
 @app.post("/api/resume-analyzer")
 def evaluate_resume(payload: ResumeRequest):
     if not payload.resume_text or len(payload.resume_text.strip()) < 30:
@@ -146,6 +166,7 @@ def evaluate_resume(payload: ResumeRequest):
     return analysis
 
 
+@app.post("/chat")
 @app.post("/api/chat")
 def career_chat(payload: ChatMessage):
     user_query = payload.message.strip()
@@ -186,7 +207,6 @@ Format with clean bullet points and markdown bolding."""
                     "status": "success"
                 }
         except Exception as e:
-            # Fall back gracefully to built-in intelligent advisor
             pass
 
     # Built-in contextual AI advisor response
@@ -270,4 +290,3 @@ Here are key expert insights to guide your next decision:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
-
