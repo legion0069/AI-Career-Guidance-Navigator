@@ -5,6 +5,8 @@ from fastapi import FastAPI, HTTPException, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 from pydantic import BaseModel, Field
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,8 +23,34 @@ from career_data import (
 app = FastAPI(
     title="AI Career Guidance Navigator",
     description="Intelligent career roadmap, skill gap analysis, and transition advisory platform.",
-    version="1.0.0"
+    version="1.0.0",
+    redirect_slashes=False
 )
+
+# Custom Vercel Path Rewriter Middleware to handle Vercel serverless query-based rewrites
+class VercelPathRewriterMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path_param = request.query_params.get("path")
+        if path_param is not None:
+            clean_path = path_param.strip()
+            if not clean_path or clean_path == "/" or clean_path == "index" or clean_path == "index.py":
+                request.scope["path"] = "/"
+            else:
+                if not clean_path.startswith("/"):
+                    clean_path = "/" + clean_path
+                # Ensure /api prefix is normalized
+                if not clean_path.startswith("/api"):
+                    clean_path = "/api" + clean_path
+                request.scope["path"] = clean_path
+
+        # If running behind Vercel edge rewrite without query param
+        matched_path = request.headers.get("x-matched-path")
+        if not path_param and matched_path and matched_path not in ("/api/index.py", "/api/index"):
+            request.scope["path"] = matched_path
+
+        return await call_next(request)
+
+app.add_middleware(VercelPathRewriterMiddleware)
 
 # CORS middleware
 app.add_middleware(
@@ -65,7 +93,6 @@ class ChatMessage(BaseModel):
 
 
 def get_index_html():
-    # Check public/index.html then static/index.html
     candidates = [
         os.path.join(PUBLIC_DIR, "index.html"),
         os.path.join(STATIC_DIR, "index.html"),
